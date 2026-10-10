@@ -953,10 +953,10 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
 #ce-aut { display: grid; gap: 10px; }
 
 .hoja-fondo { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 60; display: grid; align-items: end; }
-.hoja { background: var(--asfalto); border-top: 1px solid var(--linea); border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; max-height: 88vh; overflow: auto; width: min(100%, 520px); margin: 0 auto; box-sizing: border-box; }
+.hj-cuerpo { background: var(--asfalto); border-top: 1px solid var(--linea); border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; max-height: 88vh; overflow: auto; width: min(100%, 520px); margin: 0 auto; box-sizing: border-box; }
 .hoja-cab { display: flex; justify-content: space-between; align-items: center; }
 .hoja-cab h2 { margin: 0; font-family: var(--display); text-transform: uppercase; font-size: 24px; }
-.hoja-buscar, .hoja .campo input, .pase-cod input, .marca-fila input[type=text], #mc-lema { background: var(--asfalto-2); border: 1px solid var(--linea); border-radius: 12px; color: var(--tiza); padding: 12px 14px; font: inherit; width: 100%; box-sizing: border-box; }
+.hoja-buscar, .hj-cuerpo .campo input, .pase-cod input, .marca-fila input[type=text], #mc-lema { background: var(--asfalto-2); border: 1px solid var(--linea); border-radius: 12px; color: var(--tiza); padding: 12px 14px; font: inherit; width: 100%; box-sizing: border-box; }
 .hc-lista { display: grid; gap: 4px; max-height: 50vh; overflow: auto; }
 .hc-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; text-align: left; border: 0; background: transparent; color: var(--tiza); padding: 10px 8px; border-radius: 10px; font: inherit; cursor: pointer; }
 .hc-item:hover, .hc-item:focus-visible { background: var(--asfalto-2); }
@@ -1621,7 +1621,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     </div>
   </section>
 <div class="hoja-fondo" id="hoja-centro" hidden>
-    <div class="hoja" role="dialog" aria-modal="true" aria-labelledby="hc-t">
+    <div class="hj-cuerpo" role="dialog" aria-modal="true" aria-labelledby="hc-t">
       <div class="hoja-cab"><h2 id="hc-t">Tu centro de examen</h2><button class="cerrar" type="button" data-cerrar-hoja>Cerrar</button></div>
       <input class="hoja-buscar" id="hc-buscar" placeholder="Busca tu ciudad o provincia" autocomplete="off" aria-label="Buscar centro de examen">
       <div class="hc-lista" id="hc-lista"></div>
@@ -1629,7 +1629,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     </div>
   </div>
   <div class="hoja-fondo" id="hoja-sol" hidden>
-    <div class="hoja" role="dialog" aria-modal="true" aria-labelledby="hs-t">
+    <div class="hj-cuerpo" role="dialog" aria-modal="true" aria-labelledby="hs-t">
       <div class="hoja-cab"><h2 id="hs-t">Pedir información</h2><button class="cerrar" type="button" data-cerrar-hoja>Cerrar</button></div>
       <p class="porque" id="hs-a"></p>
       <label class="campo"><span class="etq">Tu nombre</span><input id="hs-nombre" maxlength="60" autocomplete="given-name"></label>
