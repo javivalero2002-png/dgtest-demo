@@ -1,5 +1,6 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2230%22 fill=%22%23ff6a1a%22/%3E%3C/svg%3E"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
 <title>DGTest Demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2230%22 fill=%22%23ff6a1a%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
@@ -728,6 +729,12 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
   .tabla .c-op { display: none; }
   .barra { min-width: 96px; }
 }
+
+/* pulido tras revisión */
+.tab-cont { padding-bottom: 72px; }
+:focus:not(:focus-visible) { outline: none; }
+.quien strong .tu { display: table; margin: 4px 0 2px; }
+.voz-modos { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); }
 </style>
 
 <div class="app" id="app">
@@ -2013,7 +2020,7 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
     $("b-cerrar-txt").textContent = origen === "p-hoy" ? "Hoy" : "Escenas";
     $(id).scrollTop = 0;
     var foco = FLUJO.indexOf(id) >= 0 && $(id).querySelector("button");
-    if (foco) foco.focus({ preventScroll: true });
+    if (foco) foco.focus({ preventScroll: true, focusVisible: false });
   }
   function rotulo(texto, bien) {
     $("rotulo-txt").textContent = texto;
@@ -2249,7 +2256,7 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
     ex.hidden = false;
     $("b-corregir").hidden = true;
     $("b-resultado").hidden = false;
-    $("b-resultado").focus({ preventScroll: true });
+    $("b-resultado").focus({ preventScroll: true, focusVisible: false });
   }
 
   // ---------- Resultado ----------
@@ -2723,7 +2730,7 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
   function empezarRiesgo() {
     rg = { clips: barajar(RIESGOS).slice(0, 5), i: 0, total: 0, res: [] };
     ir("p-simu"); enCurso(true); vista("riesgo-v");
-    $("rg-pts").textContent = "0 pts";
+    $("rg-pts").textContent = "0 pts"; $("rg-boton").disabled = true; $("rg-marca").hidden = true; vRg.pause(); vRg.removeAttribute("src"); vRg.load(); vRg.poster = ESCENAS[rg.clips[0].id - 1].dir + "poster_escena.jpg";
     capaRiesgo('<div class="caja"><h3>Detecta el riesgo</h3><p>Mira la carretera como si condujeras tú. Toca <b style="color:var(--tiza)">¡Peligro!</b> en cuanto veas algo que te obligue a frenar o a apartarte. Si tocas antes de tiempo, no puntúa.</p></div><button class="btn" type="button" id="rg-ya">Empezar</button>');
     $("rg-ya").addEventListener("click", function () { clipRiesgo(); });
     blob(ESCENAS[rg.clips[0].id - 1].dir + "error.mp4");
