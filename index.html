@@ -889,6 +889,18 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
 .am-res.mal .grande { color: var(--freno); }
 .am-res p { color: var(--tiza-2); margin: 0; max-width: 32ch; }
 @media (prefers-reduced-motion: reduce) { .am-pulso, .au-nombres span { animation: none; } .am-barra i, .au-op .relleno { transition: none; } }
+
+/* ajustes 10-10 */
+.onb-atras { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; color: var(--tiza-2); font: inherit; font-size: 14px; font-weight: 700; padding: 6px 8px 6px 0; margin-bottom: -6px; cursor: pointer; }
+.onb-atras svg { width: 16px; height: 16px; }
+.onb-atras:hover { color: var(--tiza); }
+.am-der { display: flex; align-items: center; gap: 12px; }
+.tab-orbe .bola { width: 50px; height: 50px; margin-top: -16px;
+  background: radial-gradient(circle at 35% 30%, #ffe3cc 0%, #ffa25a 26%, #ff6a1a 58%, #d4480f 100%);
+  box-shadow: 0 0 0 4px var(--asfalto), 0 0 22px rgba(255,106,26,.7); }
+@keyframes respira { 50% { transform: scale(1.07); box-shadow: 0 0 0 4px var(--asfalto), 0 0 32px rgba(255,120,40,.9); } }
+.tab-orbe > span:last-child { color: var(--v16); }
+.orbe-zona canvas { width: min(62vw, 250px); height: min(62vw, 250px); }
 </style>
 
 <div class="app" id="app">
@@ -1057,6 +1069,7 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
       </div>
 
       <div class="onb-paso" data-paso="2" hidden>
+        <button class="onb-atras" type="button" data-atras aria-label="Volver al paso anterior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Atrás</button>
         <h1>¿Cuándo es tu <em>examen</em>?</h1>
         <div class="elige dos" id="onb-fecha" role="group" aria-label="Fecha del examen">
           <button type="button" data-d="14" aria-pressed="false"><strong>2 semanas</strong><small>Plan intensivo</small></button>
@@ -1075,6 +1088,7 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
       </div>
 
       <div class="onb-paso" data-paso="3" hidden>
+        <button class="onb-atras" type="button" data-atras aria-label="Volver al paso anterior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Atrás</button>
         <h1>¿Vas a una <em>autoescuela</em>?</h1>
         <p>Con su código, DGTest te sale gratis y tu profesor ve qué normas dominas y cuáles no.</p>
         <label class="campo" id="onb-nombre-c" hidden><span class="etq">¿Cómo te llamas?</span><input id="onb-nombre" autocomplete="given-name" maxlength="40" placeholder="Tu nombre"></label>
@@ -1149,8 +1163,9 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
   <!-- Modo Aula: el móvil del alumno -->
   <section class="pantalla" id="p-aula-m" hidden>
     <div class="aula-m">
-      <header><span class="aula-marca"><span>DG<b>Test</b></span><em>Modo Aula</em></span><span class="pts" id="am-pts">0 pts</span></header>
+      <header><span class="aula-marca"><span>DG<b>Test</b></span><em>Modo Aula</em></span><span class="am-der"><span class="pts" id="am-pts">0 pts</span><button class="cerrar" type="button" id="am-salir">Salir</button></span></header>
       <div class="am-fase" id="am-entrar">
+        <button class="onb-atras" type="button" id="am-volver"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Atrás</button>
         <h1>Entra en la <em>clase</em></h1>
         <label class="campo"><span class="etq">Código de la sala</span><input id="am-codigo" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text"></label>
         <label class="campo"><span class="etq">Tu nombre</span><input id="am-nombre" maxlength="24" autocomplete="given-name"></label>
@@ -3363,9 +3378,9 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
     function color(z) {
       var a = 0.25 + 0.75 * (z + 1) / 2;
       if (modo === "escucha") return "rgba(127,176,255," + a + ")";
-      if (modo === "habla") return "rgba(255,138,61," + a + ")";
+      if (modo === "habla") return "rgba(255,176,92," + a + ")";
       if (modo === "piensa") return "rgba(242,179,61," + a + ")";
-      return "rgba(243,240,234," + (a * 0.8) + ")";
+      return "rgba(255,112,32," + (0.35 + a * 0.65) + ")";
     }
     function cuadro(t) {
       if (!vivo) return;
@@ -3384,7 +3399,7 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
         var onda = 1 + nivel * Math.sin(t / 160 + i * 0.7) * (modo === "habla" ? 1.2 : 0.6);
         var px = W / 2 + x * R * onda, py = H / 2 + y2 * R * onda;
         cx.fillStyle = color(z2);
-        cx.beginPath(); cx.arc(px, py, 2.2 + 2.2 * (z2 + 1) / 2, 0, 6.283); cx.fill();
+        cx.beginPath(); cx.arc(px, py, 3.2 + 3.6 * (z2 + 1) / 2, 0, 6.283); cx.fill();
       }
       requestAnimationFrame(cuadro);
     }
@@ -4416,9 +4431,21 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
     $("am-ir").addEventListener("click", entrarMovil);
     $("am-nombre").addEventListener("keydown", function (e) { if (e.key === "Enter") entrarMovil(); });
     $("onb-aula").addEventListener("click", function () { abrirMovil(""); });
-    return { abrir: abrir, abrirMovil: abrirMovil, disponible: disponible };
+    function salirMovil() { if (ch && rol === "movil") { try { cliente().removeChannel(ch); } catch (e) {} ch = null; } rol = null; ronda = null; }
+    return { abrir: abrir, abrirMovil: abrirMovil, disponible: disponible, salirMovil: salirMovil };
   })();
   $("pan-aula").addEventListener("click", function () { Aula.abrir(); });
+
+  // Volver atrás en la bienvenida y en la entrada al Modo Aula
+  document.querySelectorAll("[data-atras]").forEach(function (b) { b.addEventListener("click", function () { if (paso > 1) { paso--; pintarPaso(); } }); });
+  function salirAulaMovil() {
+    try { window.supabase && Aula && Aula.salirMovil && Aula.salirMovil(); } catch (e) {}
+    enCurso(false);
+    if (history.replaceState && /[?&]aula=/.test(location.search)) history.replaceState(null, "", location.pathname);
+    if (leer("bienvenida")) irPestana("p-hoy"); else abrirBienvenida();
+  }
+  $("am-volver").addEventListener("click", salirAulaMovil);
+  $("am-salir").addEventListener("click", salirAulaMovil);
 
   // ---------- Pestañas y botón cerrar ----------
   document.querySelectorAll("#tabbar button[data-tab]").forEach(function (b) { b.addEventListener("click", function () { irPestana(b.dataset.tab); }); });
