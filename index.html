@@ -3272,6 +3272,153 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
   }
   function escucharSiPuedo() { if (Voz.puedeEscuchar && !mudo && !$("p-voz").hidden) Voz.escuchar(entender); }
 
+  // ---------- GPT-Live ----------
+  var COPI_LIVE = "https://dgtest-copi.vercel.app/api/sesion";
+  var CopiLive = (function () {
+    var pc = null, dc = null, mic = null, audio = null, actx = null, anaOut = null, anaIn = null, bufO = null, bufI = null;
+    var estado = "off", fallo = false, inicio = 0, ultimaVoz = 0, ultimoDicho = 0, ultimoOido = 0, dicho = "", oido = "", tCierre = null, n = 0;
+    var MAX_MS = 10 * 60 * 1000, SILENCIO_MS = 75 * 1000;
+    function disponible() {
+      return !!COPI_LIVE && !fallo && /^https?:$/.test(location.protocol) && !!window.RTCPeerConnection && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    }
+    function activa() { return estado === "on"; }
+    function enviar(ev) { if (dc && dc.readyState === "open") { ev.event_id = "app_" + (++n); dc.send(JSON.stringify(ev)); } }
+    function instruir(t) { enviar({ type: "session.instructions.append", delegation_id: null, content: t }); }
+    function contexto() {
+      var temas = {}; TEMAS.forEach(function (t) { if (typeof yo.p[t] === "number") temas[t] = yo.p[t]; });
+      return { nombre: "Lucía", examen: "14 de noviembre", temas: temas, flojo: temaFlojo() };
+    }
+    function nivel(ana, buf) {
+      if (!ana) return 0;
+      ana.getFloatTimeDomainData(buf);
+      var s = 0; for (var i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+      return Math.sqrt(s / buf.length);
+    }
+    function medir() {
+      if (estado !== "on" && estado !== "conectando") return;
+      var ahora = Date.now(), o = nivel(anaOut, bufO), m = nivel(anaIn, bufI);
+      if (estado === "on") {
+        if (o > 0.012) { Orbe.modo("habla"); Orbe.golpe(Math.min(0.55, o * 5)); estadoVoz("habla", "La Copi habla"); ultimaVoz = ahora; }
+        else if (m > 0.03) { Orbe.modo("escucha"); Orbe.golpe(Math.min(0.4, m * 3)); estadoVoz("escucha", "Te escucho…"); ultimaVoz = ahora; }
+        else if (ahora - ultimaVoz > 600) { Orbe.modo("escucha"); estadoVoz("escucha", "Habla cuando quieras"); }
+        if (ahora - ultimaVoz > SILENCIO_MS) return cerrar("Me callo para no gastar: toca el micrófono cuando quieras seguir.");
+        if (ahora - inicio > MAX_MS) return cerrar("Hemos hecho una buena sesión. Toca el micrófono para empezar otra.");
+      }
+      requestAnimationFrame(medir);
+    }
+    function analizador(stream) {
+      var a = actx.createAnalyser(); a.fftSize = 1024;
+      actx.createMediaStreamSource(stream).connect(a);
+      return a;
+    }
+    function alEvento(msg) {
+      var ev; try { ev = JSON.parse(msg.data); } catch (e) { return; }
+      var ahora = Date.now();
+      if (ev.type === "session.started") {
+        estado = "on"; inicio = ultimaVoz = ahora;
+        $("voz-mic").classList.add("on"); $("voz-mic").setAttribute("aria-label", "Terminar la conversación");
+        $("voz-dice").textContent = ""; avisoVoz("Conectada a GPT-Live. Toca el micrófono para terminar.");
+        instruir("Saluda ahora mismo en castellano de España, con acento de Madrid: preséntate como la Copi, llama al alumno por su nombre y pregúntale si hacéis unas preguntas de examen o repasáis su tema más flojo. Luego calla y escucha.");
+      } else if (ev.type === "session.output_transcript.delta") {
+        if (ahora - ultimoDicho > 1500) dicho = "";
+        dicho += ev.delta || ""; ultimoDicho = ahora;
+        $("voz-dice").textContent = dicho.length > 240 ? "…" + dicho.slice(-240) : dicho;
+      } else if (ev.type === "session.input_transcript.delta") {
+        if (ahora - ultimoOido > 1500) oido = "";
+        oido += ev.delta || ""; ultimoOido = ahora;
+        $("voz-tu").textContent = "Tú: " + (oido.length > 120 ? "…" + oido.slice(-120) : oido);
+      } else if (ev.type === "session.delegation.created") {
+        estadoVoz("piensa", "Comprobándolo…"); Orbe.modo("piensa");
+      } else if (ev.type === "session.closed") {
+        limpiar();
+      } else if (ev.type === "error") {
+        console.warn("GPT-Live", ev);
+      }
+    }
+    function limpiar(aviso) {
+      clearTimeout(tCierre);
+      if (mic) mic.getTracks().forEach(function (t) { t.stop(); });
+      try { dc && dc.close(); } catch (e) {}
+      try { pc && pc.close(); } catch (e) {}
+      if (audio) audio.srcObject = null;
+      if (actx) { try { actx.close(); } catch (e) {} }
+      pc = dc = mic = actx = anaOut = anaIn = null;
+      var estaba = estado; estado = "off";
+      $("voz-mic").classList.remove("on"); $("voz-mic").setAttribute("aria-label", "Hablar"); $("voz-mic").disabled = false;
+      Orbe.modo("reposo"); estadoVoz("", estaba === "off" ? "" : "Toca el micrófono para hablar");
+      if (aviso) avisoVoz(aviso);
+    }
+    function cerrar(aviso) {
+      if (estado === "off") return;
+      if (estado !== "on") return limpiar(aviso);
+      estado = "cerrando"; estadoVoz("", "Terminando…");
+      enviar({ type: "session.close" });
+      tCierre = setTimeout(function () { limpiar(aviso); }, 3000);
+      if (aviso) avisoVoz(aviso);
+    }
+    function caer(motivo) {
+      fallo = true; limpiar();
+      $("voz-dice").textContent = "Toca el micrófono y háblame, o elige abajo.";
+      $("voz-motor").textContent = "Voz: dispositivo";
+      avisoVoz(motivo + " Sigo con la voz del dispositivo.");
+    }
+    async function abrir() {
+      if (estado !== "off") return;
+      estado = "conectando"; Voz.callar(); Voz.parar();
+      Orbe.modo("piensa"); estadoVoz("piensa", "Conectando con la Copi…");
+      $("voz-dice").textContent = "Un momento…"; $("voz-tu").textContent = ""; $("voz-ops").hidden = true;
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        pc = new RTCPeerConnection();
+        audio = audio || new Audio(); audio.autoplay = true; audio.muted = mudo;
+        pc.addEventListener("track", function (e) {
+          var st = new MediaStream([e.track]);
+          audio.srcObject = st; audio.play().catch(function () {});
+          anaOut = analizador(st); bufO = new Float32Array(anaOut.fftSize);
+        });
+        mic.getAudioTracks().forEach(function (t) { pc.addTrack(t, mic); });
+        anaIn = analizador(mic); bufI = new Float32Array(anaIn.fftSize);
+        dc = pc.createDataChannel("oai-events");
+        dc.addEventListener("message", alEvento);
+        dc.addEventListener("close", function () { if (estado !== "off") limpiar(); });
+        pc.addEventListener("connectionstatechange", function () { if (pc && pc.connectionState === "failed") limpiar("Se ha cortado la conexión. Toca el micrófono para volver a empezar."); });
+        await pc.setLocalDescription(await pc.createOffer());
+        if (pc.iceGatheringState !== "complete") await new Promise(function (ok) {
+          var t = setTimeout(ok, 4000);
+          pc.addEventListener("icegatheringstatechange", function () { if (pc.iceGatheringState === "complete") { clearTimeout(t); ok(); } });
+        });
+        var r = await fetch(COPI_LIVE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sdp: pc.localDescription.sdp, contexto: contexto() }) });
+        if (!r.ok) throw new Error("servidor " + r.status);
+        var res = await r.json();
+        await pc.setRemoteDescription({ type: "answer", sdp: res.transport.sdp });
+        requestAnimationFrame(medir);
+      } catch (e) {
+        console.warn("GPT-Live no disponible", e);
+        caer(e && e.name === "NotAllowedError" ? "No tengo permiso para el micrófono." : "No he podido conectar con GPT-Live.");
+      }
+    }
+    var PEDIDOS = {
+      pregunta: "El alumno acaba de tocar «Pregúntame». Hazle ya una pregunta tipo examen de la DGT, de cualquier tema, con sus tres opciones a, be y ce, y espera su respuesta.",
+      flojo: "El alumno acaba de tocar «Mi tema más flojo». Hazle ya una pregunta tipo examen de su tema más flojo, %T%, con sus tres opciones, y espera su respuesta.",
+      explica: "El alumno acaba de tocar «Explícame un tema». Explícale ya, como en el coche, la norma más importante de su tema más flojo, %T%, con un ejemplo, y termina con una pregunta corta.",
+      simulacro: "El alumno acaba de tocar «Simulacro oral». Empieza ya el simulacro oral de diez preguntas, sin corregir hasta el final."
+    };
+    return {
+      disponible: disponible, activa: activa,
+      alternar: function () { if (estado === "off") abrir(); else cerrar("Conversación terminada. Toca el micrófono para hablar otra vez."); },
+      alAbrir: function () {
+        if (!disponible()) return;
+        $("voz-motor").textContent = "GPT-Live";
+        avisoVoz("Toca el micrófono para hablar con la Copi en tiempo real (GPT-Live).");
+      },
+      modo: function (m) { instruir((PEDIDOS[m] || PEDIDOS.pregunta).replace("%T%", temaFlojo())); $("voz-ops").hidden = true; },
+      repetir: function () { instruir("El alumno no te ha oído bien: repite ahora tu última frase, más despacio."); },
+      silenciar: function (on) { if (audio) audio.muted = on; },
+      cerrar: function () { cerrar(); }
+    };
+  })();
+
   function abrirVoz() {
     [vEsc, vErr, vCopi].forEach(function (v) { v.pause(); });
     enCurso(true); ir("p-voz"); Orbe.encender(); Orbe.modo("reposo");
@@ -3280,20 +3427,23 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
     $("voz-dice").textContent = "¡Hola! Soy la Copi. Toca el micrófono y háblame, o elige abajo.";
     avisoVoz(Voz.puedeEscuchar ? "Demo: voz del dispositivo en castellano y reconocimiento de voz del navegador." : "Tu navegador no deja usar el micrófono aquí: elige abajo y responde tocando A, B o C.");
     $("voz-mic").disabled = false;
+    CopiLive.alAbrir();
   }
   var saludada = false;
   $("tab-orbe").addEventListener("click", abrirVoz);
-  $("voz-cerrar").addEventListener("click", function () { Voz.callar(); Voz.parar(); Orbe.apagar(); enCurso(false); saludada = false; irPestana("p-hoy"); });
+  $("voz-cerrar").addEventListener("click", function () { CopiLive.cerrar(); Voz.callar(); Voz.parar(); Orbe.apagar(); enCurso(false); saludada = false; irPestana("p-hoy"); });
   $("voz-mic").addEventListener("click", function () {
+    if (CopiLive.disponible()) return CopiLive.alternar();
     if (!saludada) { saludada = true; return decir("¡Hola! Soy la Copi, tu profe del teórico. Venga, ¿hacemos unas preguntas de examen o repasamos algún tema? Tú decides, ¿vale?", escucharSiPuedo); }
     Voz.callar();
     if (Voz.puedeEscuchar) Voz.escuchar(entender); else decir("Aquí no puedo oírte: elige abajo lo que quieres hacer.");
   });
-  $("voz-repetir").addEventListener("click", function () { if (copi.ultimo) decir(copi.ultimo, escucharSiPuedo); });
-  $("voz-callar").addEventListener("click", function () { mudo = !mudo; this.textContent = mudo ? "Con voz" : "Silenciar"; if (mudo) Voz.callar(); });
+  $("voz-repetir").addEventListener("click", function () { if (CopiLive.activa()) return CopiLive.repetir(); if (copi.ultimo) decir(copi.ultimo, escucharSiPuedo); });
+  $("voz-callar").addEventListener("click", function () { mudo = !mudo; this.textContent = mudo ? "Con voz" : "Silenciar"; if (mudo) Voz.callar(); CopiLive.silenciar(mudo); });
   document.querySelectorAll("#voz-ops button").forEach(function (b) { b.addEventListener("click", function () { Voz.callar(); Voz.parar(); responder(b.dataset.r); }); });
   document.querySelectorAll("#voz-modos button").forEach(function (b) {
     b.addEventListener("click", function () {
+      if (CopiLive.activa()) return CopiLive.modo(b.dataset.m);
       saludada = true; Voz.callar(); Voz.parar();
       var m = b.dataset.m;
       if (m === "pregunta") empezarRonda(null, 5);
