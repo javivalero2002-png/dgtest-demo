@@ -910,6 +910,36 @@ nav.tabbar { grid-template-columns: 1fr 1fr 76px 1fr 1fr; align-items: end; }
 .tab-orbe > span:last-child { color: var(--v16); }
 .orbe-zona canvas { width: min(62vw, 250px); height: min(62vw, 250px); }
 
+/* ---------- La Copi con cara (avatar elegido por el alumno) ---------- */
+.copi-cara { position: relative; width: min(64vw, 270px); aspect-ratio: 3 / 4; border-radius: 26px; overflow: hidden; background: var(--asfalto-2); box-shadow: 0 0 0 1px var(--linea), 0 18px 60px rgba(0,0,0,.55); }
+.copi-cara img, .copi-cara video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.copi-cara video { opacity: 0; transition: opacity .35s; }
+.copi-cara.vivo video { opacity: 1; }
+.copi-cara::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 3px transparent; transition: box-shadow .2s; pointer-events: none; }
+.copi-cara.habla::after { box-shadow: inset 0 0 0 3px var(--v16); }
+.copi-cara.conectando img { animation: cc-carga 1.4s ease-in-out infinite; }
+@keyframes cc-carga { 50% { filter: brightness(.65) saturate(.6); } }
+.copi-cara .cc-ia { position: absolute; left: 10px; top: 10px; z-index: 1; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: rgba(0,0,0,.55); color: #fff; border-radius: 999px; padding: 4px 8px; }
+.voz-cab .voz-tit { display: grid; justify-items: center; min-width: 0; }
+.voz-cab .quien { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; border: 1px solid var(--linea); background: var(--asfalto-2); color: var(--tiza); border-radius: 999px; padding: 4px 12px 4px 4px; font: inherit; cursor: pointer; }
+.voz-cab .quien img, .voz-cab .quien .mini-orbe { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; }
+.voz-cab .quien span { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .06em; text-transform: uppercase; }
+.voz-cab .quien .ico-s { width: 11px; height: 11px; color: var(--tiza-2); transform: rotate(90deg); }
+.mini-orbe { display: inline-block; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe3cc 0%, #ffa25a 26%, #ff6a1a 58%, #d4480f 100%); box-shadow: 0 0 18px rgba(255,106,26,.55); }
+.copis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.copi-op { position: relative; display: grid; align-content: start; border: 1px solid var(--linea); background: var(--asfalto-2); border-radius: 18px; overflow: hidden; padding: 0; text-align: left; color: var(--tiza); font: inherit; cursor: pointer; }
+.copi-op img, .copi-op .solo { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
+.copi-op .solo { display: grid; place-items: center; background: radial-gradient(90% 70% at 50% 45%, #2a1a10 0%, var(--asfalto-2) 75%); }
+.copi-op .solo .mini-orbe { width: 46%; aspect-ratio: 1; }
+.copi-op .t { padding: 10px 12px 12px; display: grid; gap: 3px; }
+.copi-op strong { font-family: var(--display); font-size: 22px; font-weight: 800; text-transform: uppercase; line-height: 1; }
+.copi-op small { color: var(--tiza-2); font-size: 12.5px; line-height: 1.3; }
+.copi-op[aria-pressed="true"] { border-color: var(--v16); box-shadow: 0 0 0 2px var(--v16); }
+.copi-op .sel { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--v16); color: #1a0d05; }
+.copi-op .sel .ico-s { width: 16px; height: 16px; }
+.copis-nota { margin: 0; font-size: 13px; line-height: 1.4; color: var(--tiza-2); }
+.tab-orbe .bola.con-cara { background: var(--cara) center 22% / cover no-repeat, var(--asfalto-2); box-shadow: 0 0 0 4px var(--asfalto), 0 0 0 6px var(--v16), 0 0 22px rgba(255,106,26,.55); animation: none; }
+
 /* ===== Centros de examen, pase, autoescuelas y marca ===== */
 .elige-centro { display: grid; gap: 2px; text-align: left; width: 100%; border: 1px dashed var(--linea); background: var(--asfalto-2); color: var(--tiza); border-radius: 14px; padding: 12px 14px; font: inherit; cursor: pointer; }
 .elige-centro span { font-weight: 700; }
@@ -1733,8 +1763,8 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   <!-- F. Habla con la Copi (orbe de voz) -->
   <section class="pantalla" id="p-voz" hidden>
     <div class="voz">
-      <div class="voz-cab"><button class="cerrar" type="button" id="voz-cerrar">Cerrar</button><span>La Copi</span><span class="marca-voz" id="voz-motor">Voz</span></div>
-      <div class="orbe-zona"><canvas id="orbe" width="680" height="680" aria-hidden="true"></canvas></div>
+      <div class="voz-cab"><button class="cerrar" type="button" id="voz-cerrar">Cerrar</button><div class="voz-tit"><span id="voz-titulo">La Copi</span><button class="quien" type="button" id="voz-quien" hidden aria-label="Elegir a tu Copi"></button></div><span class="marca-voz" id="voz-motor">Voz</span></div>
+      <div class="orbe-zona"><canvas id="orbe" width="680" height="680" aria-hidden="true"></canvas><div class="copi-cara" id="copi-cara" hidden><img id="copi-cara-img" alt=""><video id="copi-cara-v" playsinline autoplay muted></video><span class="cc-ia">Avatar con IA</span></div><audio id="copi-cara-a" autoplay></audio></div>
       <div class="voz-estado" id="voz-estado">Toca para empezar</div>
       <p class="voz-dice" id="voz-dice" aria-live="polite">Pregúntame lo que quieras del teórico, o deja que te pregunte yo.</p>
       <p class="voz-tu" id="voz-tu"></p>
@@ -1865,6 +1895,14 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
       <input class="hoja-buscar" id="hc-buscar" placeholder="Busca tu ciudad o provincia" autocomplete="off" aria-label="Buscar centro de examen">
       <div class="hc-lista" id="hc-lista"></div>
       <button class="enlace" type="button" id="hc-nose">Aún no lo sé</button>
+    </div>
+  </div>
+  <div class="hoja-fondo" id="hoja-copi" hidden>
+    <div class="hj-cuerpo" role="dialog" aria-modal="true" aria-labelledby="hcp-t">
+      <div class="hoja-cab"><h2 id="hcp-t">Elige a tu Copi</h2><button class="cerrar" type="button" data-cerrar-hoja>Cerrar</button></div>
+      <p class="copis-nota">Es quien te pregunta, te explica y te corrige cuando hablas con la Copi. La puedes cambiar cuando quieras.</p>
+      <div class="copis" id="copis"></div>
+      <p class="copis-nota">Las caras y las voces están generadas con inteligencia artificial.</p>
     </div>
   </div>
   <div class="hoja-fondo" id="hoja-sol" hidden>
@@ -4231,6 +4269,128 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
 
   // ---------- GPT-Live ----------
   var COPI_LIVE = "https://dgtest-copi.vercel.app/api/sesion";
+  // ================= La Copi con cara: el alumno elige su avatar =================
+  // La cara se genera en tiempo real a partir de la voz de la Copi (Simli). El alumno oye el audio que
+  // llega junto con el vídeo de la cara, así que labios y voz van siempre a la par.
+  // Solo aparece si el servidor de la Copi tiene avatares listos; si no, sigue el orbe de siempre.
+  var Avatar = (function () {
+    var LISTA = [
+      { id: "carmen", nombre: "Carmen", quien: "Instructora de toda la vida", estilo: "Directa y cariñosa", cara: "assets/copis/carmen.jpg" },
+      { id: "leo", nombre: "Leo", quien: "28 años", estilo: "Tranquilo: te lo explica con ejemplos de la calle", cara: "assets/copis/leo.jpg" },
+      { id: "nuria", nombre: "Nuria", quien: "35 años", estilo: "Exigente: modo examen", cara: "assets/copis/nuria.jpg" },
+      { id: "xose", nombre: "Xosé", quien: "45 años", estilo: "Con humor y mucha paciencia", cara: "assets/copis/xose.jpg" }
+    ];
+    var MODULO = "vendor/simli-client-3.0.2.min.js";
+    var ofrecidos = null, cli = null, pista = null, ctx16 = null, vivo = false, fuera = false, esperas = [], avisos = null;
+    var caja = $("copi-cara"), vid = $("copi-cara-v"), aud = $("copi-cara-a");
+    function info(id) { return LISTA.filter(function (a) { return a.id === id; })[0] || null; }
+    function cache() { var c = leer("copi_avatares"); return c && Date.now() - c.t < 864e5 ? c.ids : null; }
+    // Qué avatares tiene listos el servidor (se guarda un día; si no responde, no hay avatares)
+    function cargar() {
+      if (ofrecidos) return Promise.resolve(ofrecidos);
+      var c = cache(); if (c) { ofrecidos = c.filter(info); return Promise.resolve(ofrecidos); }
+      return fetch(COPI_LIVE + "?avatares=1")
+        .then(function (r) { return r.ok ? r.json() : {}; })
+        .catch(function () { return {}; })
+        .then(function (d) {
+          ofrecidos = (d && Array.isArray(d.avatares) ? d.avatares : []).filter(info);
+          guardar("copi_avatares", { t: Date.now(), ids: ofrecidos });
+          return ofrecidos;
+        });
+    }
+    function hay() { return !!(ofrecidos && ofrecidos.length) && CopiLive.disponible(); }
+    function elegido() { var id = leer("copi_avatar"); return hay() && ofrecidos.indexOf(id) >= 0 ? id : null; }
+    function activo() { return !!elegido() && !fuera; }
+
+    // ---------- Cómo se ve ----------
+    function pintar() {
+      var a = activo() ? info(elegido()) : null, e = info(elegido());
+      $("voz-titulo").hidden = hay();
+      var q = $("voz-quien"); q.hidden = !hay();
+      if (hay()) q.innerHTML = (e ? '<img alt="" src="' + e.cara + '"><span>' + txt(e.nombre) + '</span>' : '<i class="mini-orbe"></i><span>Solo voz</span>') + ICONO.play;
+      $("orbe").hidden = !!a; caja.hidden = !a;
+      var d = $("voz-dice"); if (e && /^¡Hola! Soy la Copi\./.test(d.textContent)) d.textContent = d.textContent.replace("Soy la Copi.", "Soy " + e.nombre + ", tu Copi.");
+      if (a && $("copi-cara-img").getAttribute("src") !== a.cara) $("copi-cara-img").src = a.cara;
+      pintarTab();
+    }
+    function pintarTab() {
+      var c = cache(), id = leer("copi_avatar"), a = c && c.indexOf(id) >= 0 ? info(id) : null, b = document.querySelector("#tab-orbe .bola");
+      b.classList.toggle("con-cara", !!a);
+      if (a) b.style.setProperty("--cara", 'url("' + a.cara + '")'); else b.style.removeProperty("--cara");
+    }
+    function abrirSelector() {
+      var actual = leer("copi_avatar");
+      $("copis").innerHTML = ofrecidos.map(info).map(function (a) {
+        return '<button class="copi-op" type="button" data-id="' + a.id + '" aria-pressed="' + (a.id === actual) + '"><img alt="" src="' + a.cara + '"><span class="t"><strong>' + txt(a.nombre) + '</strong><small>' + txt(a.quien) + '</small><small>' + txt(a.estilo) + '</small></span>' + (a.id === actual ? '<span class="sel">' + ICONO.ok + '</span>' : '') + '</button>';
+      }).join("") + '<button class="copi-op" type="button" data-id="ninguno" aria-pressed="' + (actual === "ninguno") + '"><span class="solo"><i class="mini-orbe"></i></span><span class="t"><strong>Solo voz</strong><small>El orbe de siempre</small><small>Sin cara, solo la voz de la Copi</small></span>' + (actual === "ninguno" ? '<span class="sel">' + ICONO.ok + '</span>' : '') + '</button>';
+      $("copis").querySelectorAll(".copi-op").forEach(function (b) { b.addEventListener("click", function () { elegir(b.dataset.id); }); });
+      abrirHoja("hoja-copi");
+    }
+    function elegir(id) {
+      var antes = leer("copi_avatar");
+      guardar("copi_avatar", id); fuera = false; cerrarHojas();
+      if (CopiLive.activa() && id !== antes) { CopiLive.cerrar(); avisoVoz("Toca el micrófono para hablar con " + (info(id) ? info(id).nombre : "la Copi") + "."); }
+      pintar();
+    }
+    // Al abrir la pantalla de voz: carga la lista y, la primera vez, pregunta con quién quiere hablar
+    function alAbrir() {
+      fuera = false; pintar();
+      cargar().then(function () { pintar(); if (hay() && !leer("copi_avatar") && !$("p-voz").hidden) abrirSelector(); });
+    }
+
+    // ---------- Sesión ----------
+    // Safari solo deja sonar el audio si se prepara dentro del toque: se crea aquí y luego se le pasa a Simli
+    function preparar() {
+      if (!activo()) return;
+      try { if (!ctx16 || ctx16.state === "closed") ctx16 = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 }); ctx16.resume(); } catch (e) { ctx16 = null; }
+    }
+    function conectar(token, cb) {
+      avisos = cb || {};
+      vivo = false; caja.classList.add("conectando"); caja.classList.remove("vivo", "habla");
+      import("./" + MODULO).then(function (m) {
+        cli = new m.SimliClient(token, vid, aud, null, m.LogLevel.ERROR, "livekit");
+        if (ctx16) { try { cli.audioContext.close(); } catch (e) {} cli.audioContext = ctx16; }
+        cli.on("start", function () {
+          vivo = true; caja.classList.remove("conectando"); caja.classList.add("vivo");
+          if (pista) cli.listenToMediastreamTrack(pista);
+          if (avisos.listo) avisos.listo();
+          soltar();
+        });
+        cli.on("speaking", function () { caja.classList.add("habla"); });
+        cli.on("silent", function () { caja.classList.remove("habla"); });
+        cli.on("startup_error", fallo); cli.on("error", fallo);
+        return cli.start();
+      }).catch(fallo);
+    }
+    function fallo(motivo) {
+      if (fuera) return;
+      console.warn("Avatar", motivo);
+      fuera = true; parar(); pintar();
+      if (avisos && avisos.fallo) avisos.fallo();
+    }
+    function escuchar(track) { pista = track; if (vivo && cli) cli.listenToMediastreamTrack(track); }
+    function soltar() { var e = esperas; esperas = []; e.forEach(function (f) { f(); }); }
+    // La Copi no saluda hasta que la cara está lista (como mucho unos segundos)
+    function cuandoLista(ms) {
+      if (!cli || vivo || fuera) return Promise.resolve();
+      return new Promise(function (ok) { esperas.push(ok); setTimeout(function () { if (!vivo) fallo("tarda demasiado"); ok(); }, ms); });
+    }
+    function parar() {
+      vivo = false; soltar();
+      if (cli) { try { cli.stop(); } catch (e) {} cli = null; }
+      pista = null; caja.classList.remove("conectando", "vivo", "habla");
+      try { vid.srcObject = null; aud.srcObject = null; } catch (e) {}
+    }
+    return {
+      alAbrir: alAbrir, pintarTab: pintarTab, activo: activo, elegido: elegido, preparar: preparar, conectar: conectar, escuchar: escuchar,
+      cuandoLista: cuandoLista, parar: parar, vivo: function () { return vivo; },
+      silenciar: function (on) { aud.muted = on; },
+      sinCara: function () { fuera = true; pintar(); },
+      abrirSelector: function () { cargar().then(function () { if (hay()) abrirSelector(); }); }
+    };
+  })();
+  $("voz-quien").addEventListener("click", function () { Avatar.abrirSelector(); });
+
   var CopiLive = (function () {
     var pc = null, dc = null, mic = null, audio = null, actx = null, anaOut = null, anaIn = null, bufO = null, bufI = null;
     var estado = "off", fallo = false, inicio = 0, ultimaVoz = 0, ultimoDicho = 0, ultimoOido = 0, dicho = "", oido = "", tCierre = null, n = 0;
@@ -4276,7 +4436,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
         estado = "on"; inicio = ultimaVoz = ahora;
         $("voz-mic").classList.add("on"); $("voz-mic").setAttribute("aria-label", "Terminar la conversación");
         $("voz-dice").textContent = ""; avisoVoz("Conectada a GPT-Live. Toca el micrófono para terminar.");
-        instruir(Idioma.saludoCopi());
+        Avatar.cuandoLista(7000).then(function () { if (estado === "on") instruir(Idioma.saludoCopi()); });
       } else if (ev.type === "session.output_transcript.delta") {
         if (ahora - ultimoDicho > 1500) dicho = "";
         dicho += ev.delta || ""; ultimoDicho = ahora;
@@ -4301,6 +4461,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
       if (audio) audio.srcObject = null;
       if (actx) { try { actx.close(); } catch (e) {} }
       pc = dc = mic = actx = anaOut = anaIn = null;
+      Avatar.parar();
       var estaba = estado; estado = "off";
       $("voz-mic").classList.remove("on"); $("voz-mic").setAttribute("aria-label", "Hablar"); $("voz-mic").disabled = false;
       Orbe.modo("reposo"); estadoVoz("", estaba === "off" ? "" : "Toca el micrófono para hablar");
@@ -4323,6 +4484,8 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     async function abrir() {
       if (estado !== "off") return;
       estado = "conectando"; Voz.callar(); Voz.parar();
+      var av = Avatar.activo() ? Avatar.elegido() : null;
+      Avatar.preparar();
       Orbe.modo("piensa"); estadoVoz("piensa", "Conectando con la Copi…");
       $("voz-dice").textContent = "Un momento…"; $("voz-tu").textContent = ""; $("voz-ops").hidden = true;
       try {
@@ -4334,6 +4497,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
           var st = new MediaStream([e.track]);
           audio.srcObject = st; audio.play().catch(function () {});
           anaOut = analizador(st); bufO = new Float32Array(anaOut.fftSize);
+          Avatar.escuchar(e.track);
         });
         mic.getAudioTracks().forEach(function (t) { pc.addTrack(t, mic); });
         anaIn = analizador(mic); bufI = new Float32Array(anaIn.fftSize);
@@ -4349,9 +4513,16 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
         var cab = { "Content-Type": "application/json" }, tok = typeof Nube !== "undefined" ? await Nube.token() : null, pin = leer("copi_pin");
         if (tok) cab.Authorization = "Bearer " + tok;
         if (pin) cab["X-Copi-Pin"] = pin;
-        var r = await fetch(COPI_LIVE, { method: "POST", headers: cab, body: JSON.stringify({ sdp: pc.localDescription.sdp, contexto: contexto() }) });
+        var r = await fetch(COPI_LIVE, { method: "POST", headers: cab, body: JSON.stringify(av ? { sdp: pc.localDescription.sdp, contexto: contexto(), avatar: av } : { sdp: pc.localDescription.sdp, contexto: contexto() }) });
         if (!r.ok) { var err = new Error("servidor " + r.status); err.estado = r.status; try { err.motivo = (await r.json()).motivo; } catch (x) {} throw err; }
         var res = await r.json();
+        if (av && res.avatar && res.avatar.session_token) {
+          // Se oye el audio que llega con la cara (va sincronizado con los labios), no el original
+          Avatar.conectar(res.avatar.session_token, {
+            listo: function () { if (audio) audio.muted = true; },
+            fallo: function () { if (audio) audio.muted = mudo; Orbe.encender(); avisoVoz("La cara no ha podido cargar: sigo solo con la voz."); }
+          });
+        } else if (av) Avatar.sinCara();
         await pc.setRemoteDescription({ type: "answer", sdp: res.transport.sdp });
         requestAnimationFrame(medir);
       } catch (e) {
@@ -4371,13 +4542,14 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
       disponible: disponible, activa: activa,
       alternar: function () { if (estado === "off") abrir(); else cerrar("Conversación terminada. Toca el micrófono para hablar otra vez."); },
       alAbrir: function () {
+        Avatar.alAbrir();
         if (!disponible()) return;
         $("voz-motor").textContent = "GPT-Live";
         avisoVoz("Toca el micrófono para hablar con la Copi en tiempo real (GPT-Live).");
       },
       modo: function (m) { instruir((PEDIDOS[m] || PEDIDOS.pregunta).replace("%T%", temaFlojo())); $("voz-ops").hidden = true; },
       repetir: function () { instruir("El alumno no te ha oído bien: repite ahora tu última frase, más despacio."); },
-      silenciar: function (on) { if (audio) audio.muted = on; },
+      silenciar: function (on) { if (audio) audio.muted = on || Avatar.vivo(); Avatar.silenciar(on); },
       cerrar: function () { cerrar(); },
       reintentar: function () { fallo = false; $("voz-motor").textContent = "GPT-Live"; avisoVoz("Código guardado. Toca el micrófono para hablar con la Copi."); }
     };
@@ -6772,6 +6944,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   var guardadas = leer("prefs");
   if (guardadas) { prefs.meta = guardadas.meta || 2; prefs.recordar = guardadas.recordar !== false; prefs.escuela = guardadas.escuela !== false; }
   pintarInicio();
+  Avatar.pintarTab();
   Nube.arrancar();
   Idioma.arrancar();
 })();
