@@ -3452,30 +3452,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     return "Va a ritmo. Lo que más le cuesta es " + peor + " (" + a.p[peor] + " %).";
   }
 
-  function pintarFicha() {
-    var a = selec, m = media(a), n = nivel(m);
-    var peor = TEMAS.slice().sort(function (x, y) { return a.p[x] - a.p[y]; })[0];
-    $("ficha").innerHTML =
-      '<div class="cab"><div><span class="eyebrow">Ficha del alumno</span><h2>' + txt(a.nombre) + '</h2>' +
-      '<small>Examen el ' + fecha(a) + ' (en ' + dias(a) + ' días) · ' + actTxt(a).toLowerCase() + '</small></div>' +
-      '<div><div class="total">' + m + ' %</div><span class="sem ' + n + '" style="justify-content:flex-end;display:flex">' + NOMBRE_NIVEL[n] + '</span></div></div>' +
-      '<div class="temas">' + TEMAS.map(function (t) { return '<div class="tema"><span>' + t + '</span>' + barra(a.p[t]) + '</div>'; }).join("") + '</div>' +
-      '<p class="consejo">' + txt(consejo(a)) + '</p>' +
-      '<div class="acc">' +
-        '<button class="btn mini-b" type="button" id="f-proponer"' + (n !== "listo" ? ' disabled title="Disponible desde 80 % de preparación"' : '') + '>' + (a.propuesto ? 'Quitar propuesta' : 'Proponer a examen') + '</button>' +
-        '<button class="btn sec mini-b" type="button" id="f-repaso">Enviar repaso</button>' +
-      '</div>' +
-      (n !== "listo" ? '<p class="leyenda">Podrás proponerlo a examen cuando llegue al 80 %.</p>' : '') +
-      (a.demo ? '<p class="leyenda">Esta es la ficha del alumno que juegas en la demo. Haz una escena en la vista Alumno y vuelve: sus barras cambian.</p>' : '');
-    $("f-proponer").addEventListener("click", function () {
-      a.propuesto = !a.propuesto; pintarFilas(); pintarFicha();
-      aviso(a.propuesto ? a.nombre + " queda propuesto para el examen (demo)" : "Propuesta retirada");
-    });
-    $("f-repaso").addEventListener("click", function () {
-      aviso("Repaso de " + peor + " enviado a " + a.nombre.split(" ")[0] + " (demo)");
-    });
-  }
-
   function pintarGrupo() {
     var filas = TEMAS.map(function (t) {
       var s = 0, bajo = 0;
@@ -3488,8 +3464,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
       return '<div class="tema"><span>' + f.t + '</span>' + barra(f.m) + '</div>';
     }).join("");
   }
-
-  function pintarPanel() { pintarKpis(); pintarFilas(); pintarFicha(); pintarGrupo(); }
 
   var tAviso = null;
   function aviso(msg) {
@@ -3536,13 +3510,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   function cap1(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
   function nivelTxt(m) { return m >= 80 ? "Lista para examen" : m >= 65 ? "Casi lista" : m >= 50 ? "Te falta un empujón" : "Hay que reforzar"; }
   function colorNivel(m) { return m >= 80 ? "var(--apto)" : m >= 65 ? "var(--ambar)" : "var(--freno)"; }
-  function anillo(el, m) {
-    var L = 2 * Math.PI * 50;
-    el.innerHTML = '<svg viewBox="0 0 116 116" aria-hidden="true"><circle cx="58" cy="58" r="50" fill="none" stroke="var(--linea)" stroke-width="11"/>' +
-      '<circle cx="58" cy="58" r="50" fill="none" stroke="' + colorNivel(m) + '" stroke-width="11" stroke-linecap="round" stroke-dasharray="' + L.toFixed(1) + '" stroke-dashoffset="' + (L * (1 - m / 100)).toFixed(1) + '"/></svg>' +
-      '<div class="num"><strong>' + m + ' %</strong><small>preparación</small></div>';
-    el.setAttribute("role", "img"); el.setAttribute("aria-label", "Preparación global " + m + " por ciento");
-  }
   var PLAY = '<span class="play" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M5 3l10 6-10 6z" fill="currentColor"/></svg></span>';
   var OK = '<span class="marca-ok" aria-label="Hecha"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
 
@@ -3557,10 +3524,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   function abrirEscena(e, desde) {
     origen = desde || "p-escenas";
     esc = e; pintarInicio(); ir("p-inicio");
-  }
-  function apuntarPractica() {
-    if (practica.hoy === 0) { practica.racha += 1; setTimeout(function () { aviso("Racha de " + practica.racha + " días. Sigue así"); }, 900); }
-    practica.hoy += 1;
   }
   function recomendada() {
     var orden = ESCENAS.slice().sort(function (a, b) {
@@ -3634,45 +3597,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     }).join("");
   }
   function mmss(s) { s = Math.max(0, s); return (s / 60 | 0) + ":" + ("0" + (s % 60)).slice(-2); }
-  function empezarSimu(modoS) {
-    var repaso = modoS === "repaso";
-    var pool = repaso ? ESCENAS.filter(function (e) { return fallos[e.id]; }) : ESCENAS;
-    if (!pool.length) return;
-    simu = { preguntas: barajar(pool), resp: {}, i: 0, t0: Date.now(), limite: 15 * 60, repaso: repaso };
-    enCurso(true); vista("simu-test");
-    $("simu-reloj").hidden = repaso;
-    $("simu-prog").style.gridTemplateColumns = "repeat(" + pool.length + ", 1fr)";
-    $("simu-prog").innerHTML = simu.preguntas.map(function () { return "<i></i>"; }).join("");
-    ir("p-simu");
-    pintarPregunta();
-    clearInterval(relojT);
-    if (!repaso) relojT = setInterval(function () {
-      var quedan = simu.limite - Math.round((Date.now() - simu.t0) / 1000);
-      $("simu-reloj").textContent = mmss(quedan);
-      $("simu-reloj").classList.toggle("poco", quedan <= 60);
-      if (quedan <= 0) terminarSimu();
-    }, 500);
-  }
-  function pintarPregunta() {
-    var e = simu.preguntas[simu.i], n = simu.preguntas.length;
-    $("simu-n").textContent = "Pregunta " + (simu.i + 1) + " de " + n;
-    $("simu-img").src = e.dir + "pregunta.jpg"; $("simu-img").alt = e.ex.alt;
-    $("simu-enun").textContent = e.ex.enun;
-    document.querySelectorAll("#simu-resp button").forEach(function (b) {
-      b.className = ""; b.lastElementChild.textContent = e.ex.ops[b.dataset.r];
-      b.setAttribute("aria-pressed", simu.resp[e.id] === b.dataset.r ? "true" : "false");
-    });
-    $("simu-prog").querySelectorAll("i").forEach(function (x, k) {
-      x.className = k === simu.i ? "act" : (simu.resp[simu.preguntas[k].id] ? "resp" : "");
-    });
-    $("simu-ant").disabled = simu.i === 0; $("simu-ant").style.opacity = simu.i === 0 ? ".4" : "";
-    $("simu-ant").hidden = simu.repaso;
-    $("simu-sig").parentNode.style.gridTemplateColumns = simu.repaso ? "1fr" : "";
-    $("simu-explica").hidden = true;
-    if (simu.repaso && simu.resp[e.id]) marcarRepaso(e);
-    $("simu-sig").textContent = simu.i === n - 1 ? (simu.repaso ? "Terminar repaso" : "Terminar y corregir") : "Siguiente";
-    $("p-simu").scrollTop = 0;
-  }
   function marcarRepaso(e) {
     var elegidaR = simu.resp[e.id];
     document.querySelectorAll("#simu-resp button").forEach(function (b) {
@@ -3681,52 +3605,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     var x = $("simu-explica");
     x.innerHTML = elegidaR === e.ex.correcta ? "<strong>Correcta.</strong> Esta ya la dominas: sale del repaso." : "<strong>Incorrecta.</strong> " + txt(e.ex.ko);
     x.hidden = false;
-  }
-  function terminarSimu() {
-    if (!simu) return;
-    clearInterval(relojT);
-    if (simu.repaso) {
-      var hechasR = simu.preguntas.filter(function (e) { return simu.resp[e.id]; });
-      var dom = hechasR.filter(function (e) { return simu.resp[e.id] === e.ex.correcta; });
-      dom.forEach(function (e) { delete fallos[e.id]; });
-      enCurso(false); vista("simu-res");
-      $("simu-res").innerHTML = '<header class="titular"><span class="eyebrow">Repaso de fallos</span><h1>Resultado</h1></header>' +
-        '<div class="veredicto apto"><strong>' + dom.length + '/' + simu.preguntas.length + '</strong><span>preguntas dominadas</span></div>' +
-        '<p class="porque">' + (nFallos() ? "Te quedan " + nFallos() + " por dominar. Vuelven a salir en el próximo repaso." : "Ya no te queda ningún fallo pendiente.") + '</p>' +
-        '<button class="btn" type="button" id="rp-hub">Más modalidades</button>';
-      $("rp-hub").addEventListener("click", function () { irPestana("p-simu"); });
-      simu = null; return;
-    }
-    var malas = simu.preguntas.filter(function (e) { return simu.resp[e.id] !== e.ex.correcta; });
-    var aciertos = simu.preguntas.length - malas.length, apto = malas.length <= 1;
-    var seg = Math.min(simu.limite, Math.round((Date.now() - simu.t0) / 1000));
-    practica.simulacros.push({ tipo: "Simulacro DGT", txt: aciertos + "/15 · " + mmss(seg), ok: apto, aciertos: aciertos });
-    // El simulacro también mueve la preparación de cada tema
-    simu.preguntas.forEach(function (e) {
-      if (simu.resp[e.id] === e.ex.correcta) delete fallos[e.id]; else fallos[e.id] = true;
-      var d = simu.resp[e.id] === e.ex.correcta ? 1 : -2;
-      yo.p[e.tema] = Math.max(0, Math.min(100, yo.p[e.tema] + d));
-    });
-    yo.act = 0;
-    enCurso(false); vista("simu-res");
-    var r = $("simu-res");
-    r.innerHTML =
-      '<header class="titular"><span class="eyebrow">Resultado del simulacro</span><h1>Examen</h1></header>' +
-      '<div class="veredicto ' + (apto ? "apto" : "no") + '"><strong>' + (apto ? "Apto" : "No apto") + '</strong><span>' + aciertos + ' de ' + simu.preguntas.length + ' aciertos · ' + malas.length + (malas.length === 1 ? " fallo" : " fallos") + ' · ' + mmss(seg) + '</span></div>' +
-      (malas.length ? '<section class="bloque-app"><h2>Repasa tus fallos</h2>' + malas.map(function (e) {
-        var tu = simu.resp[e.id];
-        return '<div class="fallo"><h3>' + txt(e.ex.enun) + '</h3>' +
-          '<p><span class="tu">Tu respuesta: ' + (tu ? tu.toUpperCase() + ". " + txt(e.ex.ops[tu]) : "sin responder") + '</span></p>' +
-          '<p><span class="ok">Correcta: ' + e.ex.correcta.toUpperCase() + '. ' + txt(e.ex.ops[e.ex.correcta]) + '</span></p>' +
-          '<p>' + txt(e.ex.ko) + '</p>' +
-          '<button class="btn sec mini-b" type="button" data-e="' + e.id + '">▶ Ver la escena: ' + txt(e.titulo) + '</button></div>';
-      }).join("") + '</section>' : '<p class="porque" style="text-align:center">Sin un solo fallo. Así se llega al examen.</p>') +
-      '<button class="btn" type="button" id="simu-otra">Hacer otro simulacro</button>' +
-      '<button class="btn sec" type="button" id="simu-volver">Volver a Hoy</button>';
-    r.querySelectorAll("[data-e]").forEach(function (b) { b.addEventListener("click", function () { abrirEscena(ESCENAS[b.dataset.e - 1], "p-hoy"); }); });
-    $("simu-otra").addEventListener("click", function () { empezarSimu(); });
-    $("simu-volver").addEventListener("click", function () { irPestana("p-hoy"); });
-    simu = null;
   }
   document.querySelectorAll("#simu-resp button").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -3768,13 +3646,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   var vRg = $("v-riesgo");
   function vista(id) { ["simu-intro", "simu-test", "simu-res", "riesgo-v", "contra-v"].forEach(function (v) { $(v).hidden = v !== id; }); $("p-simu").scrollTop = 0; }
   function nFallos() { return Object.keys(fallos).length; }
-  function pintarModos() {
-    var n = nFallos(), b = document.querySelector('[data-modo="repaso"]');
-    $("mm-repaso").textContent = n ? n + (n === 1 ? " pregunta" : " preguntas") : "—";
-    $("mm-repaso-txt").textContent = n ? "Solo lo que has fallado, con la explicación al momento." : "Aún no has fallado ninguna. Haz un simulacro y aquí tendrás tus fallos.";
-    b.disabled = !n;
-    $("mm-contra").textContent = recordContra ? "Récord " + recordContra : "1 min";
-  }
   document.querySelectorAll("[data-modo]").forEach(function (b) {
     b.addEventListener("click", function () {
       var m = b.dataset.modo;
@@ -3858,27 +3729,6 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
 
   // ---------- Contrarreloj ----------
   var ct = null, ctT = null;
-  function empezarContra() {
-    ct = { cola: barajar(ESCENAS), i: 0, pts: 0, combo: 1, mejor: 1, ok: 0, total: 0, fin: Date.now() + 60000, bloqueo: false };
-    ir("p-simu"); enCurso(true); vista("contra-v");
-    $("ct-pts").textContent = "0 pts"; $("ct-combo").textContent = "Racha x1";
-    preguntaContra();
-    clearInterval(ctT);
-    ctT = setInterval(function () {
-      var q = (ct.fin - Date.now()) / 60000;
-      $("ct-barra").style.width = Math.max(0, q * 100) + "%";
-      $("ct-barra").style.background = q < .2 ? "var(--freno)" : "var(--ambar)";
-      if (q <= 0) terminarContra();
-    }, 100);
-  }
-  function preguntaContra() {
-    if (ct.i >= ct.cola.length) { ct.cola = barajar(ESCENAS); ct.i = 0; }
-    var e = ct.cola[ct.i];
-    $("ct-img").src = e.dir + "pregunta.jpg"; $("ct-img").alt = e.ex.alt;
-    $("ct-enun").textContent = e.ex.enun;
-    document.querySelectorAll("#ct-resp button").forEach(function (b) { b.className = ""; b.lastElementChild.textContent = e.ex.ops[b.dataset.r]; });
-    $("ct-hoja").className = "hoja";
-  }
   document.querySelectorAll("#ct-resp button").forEach(function (b) {
     b.addEventListener("click", function () {
       if (!ct || ct.bloqueo) return;
@@ -4113,10 +3963,10 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     var hecha = !t && tareasDe(yo).filter(function (x) { return x.estado === "hecha"; }).slice(-1)[0];
     if (!t && !hecha) { c.innerHTML = ""; return; }
     if (t) {
-      c.innerHTML = '<div class="tarea"><span class="av">' + Nube.firma().ini + '</span><span><small>Tarea de tu profesor · ' + t.cuando + '</small><strong>' + nTarea(t.tema) + ' preguntas de ' + t.tema + '</strong><p>' + txt(Nube.firma().quien) + ': «Repasa ' + t.tema.toLowerCase() + (Nube.real() ? '.»' : ' antes del jueves.»') + '</p></span><button class="btn" type="button" id="hoy-hacer">Hacer ahora · 3 min</button></div>';
+      c.innerHTML = '<div class="tarea"><span class="av">' + txt(Nube.firma().ini) + '</span><span><small>Tarea de tu profesor · ' + t.cuando + '</small><strong>' + nTarea(t.tema) + ' preguntas de ' + txt(t.tema) + '</strong><p>' + txt(Nube.firma().quien) + ': «Repasa ' + txt(t.tema.toLowerCase()) + (Nube.real() ? '.»' : ' antes del jueves.»') + '</p></span><button class="btn" type="button" id="hoy-hacer">Hacer ahora · 3 min</button></div>';
       $("hoy-hacer").addEventListener("click", function () { irPestana("p-simu"); empezarSimu("tema", t.tema, t); });
     } else {
-      c.innerHTML = '<div class="tarea hecha"><span class="av" style="background:var(--apto);color:#06251a">✓</span><span><small>Tarea entregada</small><strong>' + hecha.tema + ': ' + hecha.res + '</strong><p>Tu profesor ya ve el resultado en su panel.</p></span></div>';
+      c.innerHTML = '<div class="tarea hecha"><span class="av" style="background:var(--apto);color:#06251a">✓</span><span><small>Tarea entregada</small><strong>' + txt(hecha.tema) + ': ' + hecha.res + '</strong><p>Tu profesor ya ve el resultado en su panel.</p></span></div>';
     }
   }
   function pintarFicha() {
@@ -4131,7 +3981,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
       '<p class="consejo">' + txt(consejo(a)) + '</p>' +
       '<div style="display:grid;gap:8px"><span class="eyebrow">Tareas</span>' +
         (ts.length ? '<div class="tareas-al">' + ts.slice().reverse().map(function (x) {
-          return '<div class="tarea-fila"><span>' + nTarea(x.tema) + ' preguntas de ' + x.tema + ' <small style="color:var(--tiza-2)">· ' + x.cuando + '</small></span>' +
+          return '<div class="tarea-fila"><span>' + nTarea(x.tema) + ' preguntas de ' + txt(x.tema) + ' <small style="color:var(--tiza-2)">· ' + x.cuando + '</small></span>' +
             (x.estado === "hecha" ? '<span class="estado si">Hecha ' + x.res + '</span>' : '<span class="estado prox">Pendiente</span>') + '</div>';
         }).join("") + '</div>' : '<p class="leyenda">Aún no le has mandado ninguna tarea.</p>') +
         '<div class="asignar"><select id="f-tema" aria-label="Tema de la tarea">' + TEMAS.map(function (t) { return '<option' + (t === peor ? ' selected' : '') + '>' + t + '</option>'; }).join("") + '</select>' +
@@ -5433,7 +5283,9 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   $("ce-cambiar").addEventListener("click", function () { elegirCentro(function (id) { abrirFicha(id); }); });
 
   function iniciales(t) { return (t || "").replace(/^autoescuela\s+/i, "").split(/\s+/).filter(Boolean).slice(0, 2).map(function (x) { return x.charAt(0).toUpperCase(); }).join("") || "AE"; }
-  function logoHtml(m) { return m && m.logo ? '<img alt="" src="' + m.logo + '">' : txt(iniciales(m && (m.nombre || m.nombre_dgtest))); }
+  // Solo vale un logo incrustado (data:image/…;base64): así un logo guardado en la nube nunca puede meter HTML en la app
+  function logoSeguro(u) { return typeof u === "string" && /^data:image\/(png|webp|jpeg);base64,[A-Za-z0-9+\/]+=*$/.test(u) ? u : null; }
+  function logoHtml(m) { var u = m && logoSeguro(m.logo); return u ? '<img alt="" src="' + u + '">' : txt(iniciales(m && (m.nombre || m.nombre_dgtest))); }
   var verTodas = false;
   async function cargarAutoescuelas(c, enfocar) {
     var caja = $("ce-aut"), sb = Nube.cliente();
@@ -5591,7 +5443,8 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
       marca.innerHTML = '<span class="mlogo">' + logoHtml(m) + '</span><span class="mnom"><span>' + txt(m.nombre.replace(/^autoescuela\s+/i, "")) + '</span><small>' + txt(m.lema || "con DGTest") + '</small></span>';
       document.title = m.nombre + " · DGTest";
       var ic = document.querySelector('link[rel="apple-touch-icon"]');
-      if (m.logo) { if (!ic) { ic = document.createElement("link"); ic.rel = "apple-touch-icon"; document.head.appendChild(ic); } ic.href = m.logo; }
+      var logo = logoSeguro(m.logo);
+      if (logo) { if (!ic) { ic = document.createElement("link"); ic.rel = "apple-touch-icon"; document.head.appendChild(ic); } ic.href = logo; }
     } else {
       marca.classList.remove("con-escuela"); marca.innerHTML = 'DG<b>Test</b>'; document.title = "DGTest Demo";
     }
