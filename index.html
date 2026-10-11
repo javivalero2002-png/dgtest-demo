@@ -1162,11 +1162,11 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
 .tt-resumen div { display: grid; gap: 2px; text-align: center; padding: 10px 4px; border-radius: 14px; background: var(--asfalto-2); border: 1px solid var(--linea); }
 .tt-resumen b { font-family: var(--display); font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
 .tt-resumen span { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tiza-2); }
+/* 5 columnas siempre: la app mide ~400 px también en tablet y ordenador (antes pasaba a 10 y no cabía) */
 .tests-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-@media (min-width: 700px) { .tests-grid { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
 .tt { aspect-ratio: 1; min-width: 0; border-radius: 12px; border: 1px solid var(--linea); background: var(--asfalto-2); color: var(--tiza); display: grid; place-content: center; gap: 1px; text-align: center; padding: 0; }
 .tt b { font-family: var(--display); font-size: 24px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-.tt small { font-size: 10px; font-weight: 700; opacity: .8; }
+.tt small { font-size: 10px; font-weight: 700; opacity: .8; max-width: 100%; padding: 0 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tt.verde { background: var(--apto); border-color: var(--apto); color: #06251a; }
 .tt.amarillo { background: var(--ambar); border-color: var(--ambar); color: #2a1c00; }
 .tt.rojo { background: var(--freno); border-color: var(--freno); color: #2b0705; }
