@@ -6328,7 +6328,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   };
 
   // ---------- Panel del profesor: semáforo y certificado en la ficha ----------
-  function prepDe(a) {
+  function prepAlumno(a) {
     if (a.prep && a.prep.semaforo) return a.prep;
     if (a.demo) { var e = Prep.estado(); return { semaforo: e.semaforo, prob: Math.round(e.prob * 100), cert: e.cert }; }
     if (a.real || a.prep) return { semaforo: null };
@@ -6341,7 +6341,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
   pintarFicha = function () {
     pintarFichaPrep();
     var a = selec; if (!a || !$("f-proponer")) return;
-    var p = prepDe(a), b = $("f-proponer");
+    var p = prepAlumno(a), b = $("f-proponer");
     var bloque = p.semaforo
       ? '<div class="f-prep">' + semHTML(p.semaforo) + '<div><strong>' + (p.cert ? "Certificado de preparación" : TXT_SEM[p.semaforo]) + ' · ' + p.prob + ' % de aprobar</strong><span>' + (p.cert ? '<span class="cert">Prueba final superada dos días · ' + fechaLarga(p.cert) + '</span>' : p.semaforo === "verde" ? "Cumple las 5 metas. Le falta la prueba final." : "Aún no cumple las 5 metas de preparación.") + '</span></div></div>'
       : '<div class="f-prep"><span class="semaforo" data-s="" aria-hidden="true"><i></i><i></i><i></i></span><div><strong>Sin datos de preparación</strong><span>Aparecerán cuando use la versión nueva de la app.</span></div></div>';
@@ -6357,7 +6357,7 @@ button.plan-f { font: inherit; color: inherit; text-align: left; cursor: pointer
     document.querySelectorAll("#filas .quien strong").forEach(function (st) {
       var nombre = st.firstChild && st.firstChild.textContent, a = ALUMNOS.filter(function (x) { return x.nombre === nombre; })[0];
       if (!a || st.querySelector(".pt")) return;
-      var p = prepDe(a); if (!p.semaforo) return;
+      var p = prepAlumno(a); if (!p.semaforo) return;
       var punto = document.createElement("span"); punto.className = "pt"; punto.title = p.cert ? "Certificado de preparación" : TXT_SEM[p.semaforo];
       punto.style.background = "var(--" + ({ verde: "apto", ambar: "ambar", rojo: "freno" })[p.semaforo] + ")";
       st.insertBefore(punto, st.firstChild.nextSibling);
